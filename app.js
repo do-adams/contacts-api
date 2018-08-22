@@ -1,17 +1,16 @@
 'use strict';
 
 const createError = require('http-errors'),
-  express = require('express'),
+	express = require('express'),
+	mongoose = require('mongoose'),
   path = require('path'),
   cookieParser = require('cookie-parser'),
   logger = require('morgan');
 
-const app = express(),
-  contacts = require('./modules/contacts');
+const app = express();
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
 
 app.use(logger('dev'));
 app.use(express.json());
@@ -19,37 +18,45 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.get('/contacts', 
-		function(request, response){
-			var get_params = request.query;
-			
-			if (Object.keys(get_params).length === 0)
-			{
-				response.setHeader('content-type', 'application/json');
-				response.end(JSON.stringify(contacts.list()));	
-			}
-			else
-			{
-				response.setHeader('content-type', 'application/json');
-				response.end(JSON.stringify(contacts.query_by_arg(get_params.arg, get_params.value)));
-			}
-		}
-);
+mongoose.connect('mongodb://localhost/contacts');
 
+const contactSchema = new mongoose.Schema({
+	primarycontactnumber: {type: String, index: {unique: true}},
+	firstname: String,
+	lastname: String,
+	title: String,
+	company: String,
+	jobtitle: String,	
+	othercontactnumbers: [String],
+	primaryemailaddress: String,
+	emailaddresses: [String],
+	groups: [String]
+});
+
+const Contact = mongoose.model('Contact', contactSchema),
+	dataservice = require('./modules/contactdataservice');
 
 app.get('/contacts/:number', function(request, response) {
-	response.setHeader('content-type', 'application/json');	
-	response.end(JSON.stringify(contacts.query(request.params.number)));
+	console.log(request.url + ' : querying for ' + request.params.number);
+	dataservice.findByNumber(Contact, request.params.number, response);	
 });
 
-app.get('/groups', function(request, response) {
-	response.setHeader('content-type', 'application/json');	
-	response.end(JSON.stringify(contacts.list_groups()));
+
+app.post('/contacts', function(request, response) {
+	dataservice.update(Contact, request.body, response);
 });
 
-app.get('/groups/:name', function(request, response) {
-	response.setHeader('content-type', 'application/json');	
-	response.end(JSON.stringify(contacts.get_members(request.params.name)));
+app.put('/contacts', function(request, response) {
+	dataservice.create(Contact, request.body, response);
+});
+
+
+app.delete('/contacts/:primarycontactnumber', function(request, response) {
+		console.log(dataservice.remove(Contact, request.params.primarycontactnumber, response));
+});
+
+app.get('/contacts', function(request, response) {
+	dataservice.list(Contact, response);
 });
 
 // catch 404 and forward to error handler
