@@ -3,6 +3,7 @@
 const createError = require('http-errors'),
 	express = require('express'),
 	mongoose = require('mongoose'),
+	methodOverride = require('method-override'),
   path = require('path'),
   cookieParser = require('cookie-parser'),
   logger = require('morgan');
