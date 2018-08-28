@@ -1,12 +1,12 @@
 'use strict';
 
 const createError = require('http-errors'),
-	express = require('express'),
-	mongoose = require('mongoose'),
-	methodOverride = require('method-override'),
-  path = require('path'),
-  cookieParser = require('cookie-parser'),
-  logger = require('morgan');
+express = require('express'),
+mongoose = require('mongoose'),
+methodOverride = require('method-override'),
+path = require('path'),
+cookieParser = require('cookie-parser'),
+logger = require('morgan');
 
 const app = express();
 
@@ -32,45 +32,44 @@ const contactSchema = new mongoose.Schema({
 });
 
 const Contact = mongoose.model('Contact', contactSchema),
-	dataservice = require('./modules/contactdataservice');
+_v1 = require('./modules/contactdataservice_1');
 
-app.get('/contacts/:number', function(request, response) {
+app.get('/v1/contacts/:number', function(request, response) {
 	console.log(request.url + ' : querying for ' + request.params.number);
-	dataservice.findByNumber(Contact, request.params.number, response);	
+	_v1.findByNumber(Contact, request.params.number, response);
 });
 
-
-app.post('/contacts', function(request, response) {
-	dataservice.update(Contact, request.body, response);
+app.post('/v1/contacts/', function(request, response) {
+	_v1.update(Contact, request.body, response);
 });
 
-app.put('/contacts', function(request, response) {
-	dataservice.create(Contact, request.body, response);
+app.put('/v1/contacts/', function(request, response) {
+	_v1.create(Contact, request.body, response);
 });
 
-
-app.delete('/contacts/:primarycontactnumber', function(request, response) {
-		console.log(dataservice.remove(Contact, request.params.primarycontactnumber, response));
+app.delete('/v1/contacts/:primarycontactnumber', function(request, response) {
+	_v1.remove(Contact, request.params.primarycontactnumber,response);
 });
 
 app.get('/contacts', function(request, response) {
-	dataservice.list(Contact, response);
+	response.writeHead(301, {'Location' : '/v1/contacts/'});
+	response.end('Version 1 is moved to /contacts/: ');
 });
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
-  next(createError(404));
+	next(createError(404));
 });
 
 // error handler
 app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-  // render the error
-  res.status(err.status || 500);
-  res.send(err.message);
+	// set locals, only providing error in development
+	res.locals.message = err.message;
+	res.locals.error = req.app.get('env') === 'development' ? err : {};
+	
+	// render the error
+	res.status(err.status || 500);
+	res.send(err.message);
 });
 
 module.exports = app;
