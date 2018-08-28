@@ -1,6 +1,6 @@
 exports.remove = function (model, _primarycontactnumber, response) {
 	console.log('Deleting contact with primary number: ' 
-			+ _primarycontactnumber);	
+	+ _primarycontactnumber);	
 	model.findOne({primarycontactnumber: _primarycontactnumber}, function(error, data) {
 		if (error) {
 			console.log(error);
@@ -22,7 +22,7 @@ exports.remove = function (model, _primarycontactnumber, response) {
 				data.remove(function(error){
 					if (!error) {
 						data.remove();						
-											
+						
 					}
 					else {
 						console.log(error);
@@ -53,7 +53,7 @@ exports.update = function (model, requestBody, response) {
 			var contact = toContact(requestBody, model);
 			if (!data) {
 				console.log('Contact with primary number: ' + primarynumber + 
-						' does not exist. The contact will be created.');				
+				' does not exist. The contact will be created.');				
 				
 				contact.save(function(error) {
 					if (!error)
@@ -99,7 +99,7 @@ exports.create = function (model, requestBody, response) {
 	contact.save(function(error) {
 		
 		if (!error) {			
-				contact.save();				
+			contact.save();				
 		} else {			
 			console.log('Checking if contact saving failed due to already existing primary number:' + primarynumber);
 			model.findOne({primarycontactnumber: primarynumber}, function(error, data) {
@@ -173,7 +173,7 @@ exports.findByNumber = function (model, _primarycontactnumber, response) {
 				}
 				return;
 			}
-				
+			
 			if (response != null){
 				response.setHeader('Content-Type', 'application/json');
 				response.send(result);				
@@ -195,21 +195,50 @@ exports.list = function (model, response) {
 		}
 		return JSON.stringify(result);
 	});
-}
+};
+
+exports.query_by_arg = function (model, key, value, response) {
+	//build a JSON string with the attribute and the value
+	var filterArg = '{"'+key + '":' +'"'+ value + '"}';
+	var filter = JSON.parse(filterArg);
+	model.find(filter, function(error, result) {
+		if (error) {
+			console.error(error);
+			response.writeHead(500, {'Content-Type' :
+			'text/plain'});
+			response.end('Internal server error');
+			return;
+		} else {
+			if (!result) {
+				if (response != null) {
+					response.writeHead(404, {'Content-Type' :
+					'text/plain'});
+					response.end('Not Found');
+				}
+				return;
+			}
+			if (response != null){
+				response.setHeader('Content-Type',
+				'application/json');
+				response.send(result);
+			}
+		}
+	});
+};
 
 function toContact(body, Contact) {	
 	
 	return new Contact(
-			{
-				firstname: body.firstname,
-				lastname: body.lastname,
-				title: body.title,
-				company: body.company,
-				jobtitle: body.jobtitle,
-				primarycontactnumber: body.primarycontactnumber,
-				primaryemailaddress: body.primaryemailaddress,				
-				emailaddresses: body.emailaddresses,
-				groups: body.groups,
-				othercontactnumbers: body.othercontactnumbers				
-			});
-}
+		{
+			firstname: body.firstname,
+			lastname: body.lastname,
+			title: body.title,
+			company: body.company,
+			jobtitle: body.jobtitle,
+			primarycontactnumber: body.primarycontactnumber,
+			primaryemailaddress: body.primaryemailaddress,				
+			emailaddresses: body.emailaddresses,
+			groups: body.groups,
+			othercontactnumbers: body.othercontactnumbers				
+		});
+	}

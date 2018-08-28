@@ -32,7 +32,7 @@ const contactSchema = new mongoose.Schema({
 });
 
 const Contact = mongoose.model('Contact', contactSchema),
-_v1 = require('./modules/contactdataservice_1');
+_v1 = require('./modules/contactdataservice_v1');
 
 app.get('/v1/contacts/:number', function(request, response) {
 	console.log(request.url + ' : querying for ' + request.params.number);
@@ -51,9 +51,19 @@ app.delete('/v1/contacts/:primarycontactnumber', function(request, response) {
 	_v1.remove(Contact, request.params.primarycontactnumber,response);
 });
 
+var _v2 = require('./modules/contactdataservice_v2');
 app.get('/contacts', function(request, response) {
-	response.writeHead(301, {'Location' : '/v1/contacts/'});
-	response.end('Version 1 is moved to /contacts/: ');
+	var get_params = request.query;
+	if (Object.keys(get_params).length == 0)
+	{
+		_v2.list(Contact, response);
+	}
+	else
+	{
+		var key = Object.keys(get_params)[0];
+		var value = get_params[key];
+		JSON.stringify(_v2.query_by_arg(Contact, key, value,response));
+	}
 });
 
 // catch 404 and forward to error handler
