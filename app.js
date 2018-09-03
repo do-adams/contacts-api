@@ -1,13 +1,12 @@
-'use strict';
 
 const createError = require('http-errors'),
-	express = require('express'),
-	mongoose = require('mongoose'),
-	Grid = require('gridfs-stream'),
-	methodOverride = require('method-override'),
-	path = require('path'),
-	cookieParser = require('cookie-parser'),
-	logger = require('morgan');
+express = require('express'),
+mongoose = require('mongoose'),
+Grid = require('gridfs-stream'),
+methodOverride = require('method-override'),
+path = require('path'),
+cookieParser = require('cookie-parser'),
+logger = require('morgan');
 
 const app = express();
 
@@ -55,6 +54,7 @@ app.delete('/v1/contacts/:primarycontactnumber', function(request, response) {
 });
 
 var _v2 = require('./modules/contactdataservice_v2');
+
 app.get('/contacts', function(request, response) {
 	var get_params = request.query;
 	if (Object.keys(get_params).length == 0)
@@ -69,6 +69,46 @@ app.get('/contacts', function(request, response) {
 	}
 });
 
+app.get('/v2/contacts/:primarycontactnumber/image', function(request, response){
+	var gfs = Grid(mongodb.db, mongoose.mongo);
+	_v2.getImage(gfs, request.params.primarycontactnumber, response);
+});
+
+app.get('/contacts/:primarycontactnumber/image',function(request, response){
+	var gfs = Grid(mongodb.db, mongoose.mongo);
+	_v2.getImage(gfs, request.params.primarycontactnumber, response);
+});
+
+app.post('/v2/contacts/:primarycontactnumber/image', function(request, response){
+	var gfs = Grid(mongodb.db, mongoose.mongo);
+	_v2.updateImage(gfs, request, response);
+});
+
+app.post('/contacts/:primarycontactnumber/image', function(request, response){
+	var gfs = Grid(mongodb.db, mongoose.mongo);
+	_v2.updateImage(gfs, request, response);
+});
+
+app.put('/v2/contacts/:primarycontactnumber/image', function(request, response){
+	var gfs = Grid(mongodb.db, mongoose.mongo);
+	_v2.updateImage(gfs, request, response);
+});
+
+app.put('/contacts/:primarycontactnumber/image', function(request, response){
+	var gfs = Grid(mongodb.db, mongoose.mongo);
+	_v2.updateImage(gfs, request, response);
+});
+
+app.delete('/v2/contacts/:primarycontactnumber/image', function(request, response){
+	var gfs = Grid(mongodb.db, mongoose.mongo);
+	_v2.deleteImage(gfs, mongodb.db,request.params.primarycontactnumber, response);
+});
+	
+app.delete('/contacts/:primarycontactnumber/image', function(request, response){
+	var gfs = Grid(mongodb.db, mongoose.mongo);
+	_v2.deleteImage(gfs, mongodb.db, request.params.primarycontactnumber, response);
+});
+	
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
 	next(createError(404));
@@ -86,3 +126,4 @@ app.use(function(err, req, res, next) {
 });
 
 module.exports = app;
+	
