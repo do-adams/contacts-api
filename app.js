@@ -1,12 +1,13 @@
 'use strict';
 
 const createError = require('http-errors'),
-express = require('express'),
-mongoose = require('mongoose'),
-methodOverride = require('method-override'),
-path = require('path'),
-cookieParser = require('cookie-parser'),
-logger = require('morgan');
+	express = require('express'),
+	mongoose = require('mongoose'),
+	Grid = require('gridfs-stream'),
+	methodOverride = require('method-override'),
+	path = require('path'),
+	cookieParser = require('cookie-parser'),
+	logger = require('morgan');
 
 const app = express();
 
@@ -17,6 +18,8 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 mongoose.connect('mongodb://localhost/contacts');
+var mongodb = mongoose.connection;
+var gfs = Grid(mongodb.db, mongoose.mongo);
 
 const contactSchema = new mongoose.Schema({
 	primarycontactnumber: {type: String, index: {unique: true}},
