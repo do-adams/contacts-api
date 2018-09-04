@@ -286,3 +286,23 @@ exports.deleteImage = function(gfs, mongodb, _primarycontactnumber, response) {
 	});
 	response.send('Successfully deleted image for primary contact number: ' + _primarycontactnumber);
 };
+
+exports.paginate = function (model, request, response) {
+	model.paginate({}, {
+		page: request.query.page,
+		limit: request.query.limit
+	}, function(error, pageCount, result, itemCount) {
+		if (error) {
+			console.error(error);
+			response.writeHead(500, {
+			'Content-Type' : 'text/plain'});
+			response.end('Internal server error');
+			return;
+		}
+		response.json({
+			object: 'contacts',
+			page_count: pageCount,
+			result: result
+		});
+	});
+};

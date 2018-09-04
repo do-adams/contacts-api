@@ -3,10 +3,13 @@ const createError = require('http-errors'),
 express = require('express'),
 mongoose = require('mongoose'),
 Grid = require('gridfs-stream'),
+mongoosePaginate = require('mongoose-paginate'),
+expressPaginate = require('express-paginate'),
 methodOverride = require('method-override'),
 path = require('path'),
 cookieParser = require('cookie-parser'),
 logger = require('morgan');
+
 
 const app = express();
 
@@ -19,6 +22,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 mongoose.connect('mongodb://localhost/contacts');
 var mongodb = mongoose.connection;
 var gfs = Grid(mongodb.db, mongoose.mongo);
+
+app.use(expressPaginate.middleware(10, 20));
 
 const contactSchema = new mongoose.Schema({
 	primarycontactnumber: {type: String, index: {unique: true}},
@@ -33,6 +38,7 @@ const contactSchema = new mongoose.Schema({
 	groups: [String]
 });
 
+contactSchema.plugin(mongoosePaginate);
 const Contact = mongoose.model('Contact', contactSchema),
 _v1 = require('./modules/contactdataservice_v1');
 
@@ -57,15 +63,24 @@ var _v2 = require('./modules/contactdataservice_v2');
 
 app.get('/contacts', function(request, response) {
 	var get_params = request.query;
-	if (Object.keys(get_params).length == 0)
-	{
-		_v2.list(Contact, response);
-	}
-	else
-	{
-		var key = Object.keys(get_params)[0];
-		var value = get_params[key];
-		JSON.stringify(_v2.query_by_arg(Contact, key, value,response));
+	console.log('redirecting to /v2/contacts');
+	response.writeHead(302, {'Location' : '/v2/contacts/'});
+	response.end('Version 2 is found at URI/v2/contacts/');
+});
+
+app.get('/v2/contacts', function(request, response) {
+	var get_params = request.query;
+	
+	if (Object.keys(get_params).length == 0) {
+		_v2.paginate(Contact, request, response);
+	} else {
+		if (get_params['limit'] != null || get_params['page']!= null) {
+			_v2.paginate(Contact, request, response);
+		} else {
+			var key = Object.keys(get_params)[0];
+			var value = get_params[key];
+			_v2.query_by_arg(Contact, key, value, response);
+		}
 	}
 });
 
